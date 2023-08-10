@@ -383,14 +383,14 @@ bool QWinHost::winEvent(MSG *msg, long *result)
     switch (msg->message)
     {
     case WM_SETFOCUS:
-        PrintWinMsg("QWinHost \t\t\t\t", msg->message);
+        PrintWinMsg("QWinHost               ", msg->message);
         if (hwnd) {
             ::SetFocus(hwnd);
             return true;
         }
         break;
     default:
-        PrintWinMsg("QWinHost \t\t\t\t", msg->message);
+        PrintWinMsg("QWinHost               ", msg->message);
         break;
     }
 #if QT_VERSION >= 0x050000

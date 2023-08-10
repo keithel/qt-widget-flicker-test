@@ -1,10 +1,9 @@
-
-#include <QtWidgets/QApplication>
+#include <QApplication>
 #include <windows.h>
-#include <tchar.h>
 #include <qdebug.h>
-#include "QWinHost.h"
+#include "qwinhost.h"
 #include "qrandom.h"
+#include <unordered_set>
 
 const char* WinMsgToStr(UINT msg)
 {
@@ -90,14 +89,26 @@ const char* WinMsgToStr(UINT msg)
         return "WM_EXITSIZEMOVE";
 
     default:
-        static QString unknown;
-        unknown = QString("0x%1").arg(msg, 4, 16, QLatin1Char('0'));
-        return unknown.toLatin1().constData();
+        static QByteArray unknown;
+        unknown = QString("0x%1").arg(msg, 4, 16, QLatin1Char('0')).toLatin1();
+        return unknown.constData();
     }
 }
+
+std::unordered_set<UINT> excludeMessages = {
+    WM_GETICON,
+    WM_SETCURSOR,
+    WM_NCMOUSEMOVE,
+    WM_MOUSEMOVE,
+    WM_NCHITTEST
+};
+
 void PrintWinMsg(const char* wndName, UINT msg)
 {
-    qDebug() << wndName << WinMsgToStr(msg);
+    if (excludeMessages.find(msg) == excludeMessages.end())
+    {
+        qDebug() << wndName << WinMsgToStr(msg);
+    }
 }
 
 LRESULT CALLBACK WindowProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
@@ -105,7 +116,7 @@ LRESULT CALLBACK WindowProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wPara
     switch (message)
     {
     case WM_PAINT: {
-        PrintWinMsg("Embedded Win32 Window \t", message);
+        PrintWinMsg("Embedded Win32 Window  ", message);
 
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
@@ -134,7 +145,7 @@ LRESULT CALLBACK WindowProc(_In_ HWND hwnd, _In_ UINT message, _In_ WPARAM wPara
         return 0;
     }
     default:
-        PrintWinMsg("Embedded Win32 Window \t", message);
+        PrintWinMsg("Embedded Win32 Window  ", message);
         break;
     }
 
@@ -155,7 +166,13 @@ bool UnsetLegacyEnvironmentVars(const std::vector<const char*>& vEnvironmentVars
 
 int main( int argc, char *argv[] )
 {
-    SetDllDirectory(_T(""));
+#ifdef UNICODE
+    SetDllDirectory(L"");
+    LPCWSTR eWinStr = L"EmbeddedWindow";
+#else
+    SetDllDirectory("");
+    LPCSTR eWinStr = "EmbeddedWindow";
+#endif
 
     // Register our embedded test window class
     auto hInstance = GetModuleHandle(NULL);
@@ -169,7 +186,7 @@ int main( int argc, char *argv[] )
     wc.hCursor = LoadCursor((HINSTANCE)NULL, IDC_ARROW);
     wc.hbrBackground = CreateSolidBrush(RGB(0, 0, 255));
     wc.lpszMenuName = nullptr;
-    wc.lpszClassName = L"EmbeddedWindow";
+    wc.lpszClassName = eWinStr;
 
     if (!RegisterClass(&wc))
         return FALSE;
@@ -191,8 +208,8 @@ int main( int argc, char *argv[] )
     QWinHost winHost;
     winHost.setWindowTitle(QString("QtWidgetFlickerTest Qt%1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
 
-    HWND embededWin = CreateWindow(L"EmbeddedWindow", // Predefined class;
-        L"EmbeddedWindow", // caption
+    HWND embededWin = CreateWindow(eWinStr, // Predefined class;
+        eWinStr, // caption
         WS_TABSTOP | WS_VISIBLE | WS_CHILD, // Styles
         0, // x position
         0, // y position

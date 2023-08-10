@@ -44,8 +44,7 @@
 #ifndef QWINHOST_H
 #define QWINHOST_H
 
-#include <QtWidgets/QWidget>
-
+#include <QWidget>
 
 class QWinHost : public QWidget
 {
@@ -61,7 +60,7 @@ public:
     void setHostedWindow(HWND);
     HWND hostedWindow() const;
 
-Q_SIGNALS:
+signals:
 
     /* \brief Gets emitted, if the native window that is hosted by this
     * widget has been changed.
