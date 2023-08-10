@@ -82,8 +82,8 @@
     passed on to the QWidget constructor. The widget has by default
     no background.
 
-    \warning You cannot change the parent widget of the QWinHost instance 
-    after the native window has been created, i.e. do not call 
+    \warning You cannot change the parent widget of the QWinHost instance
+    after the native window has been created, i.e. do not call
     QWidget::setParent or move the QWinHost into a different layout.
 */
 QWinHost::QWinHost(QWidget *parent, Qt::WindowFlags f)
@@ -102,34 +102,34 @@ QWinHost::~QWinHost()
 {
     if (wndproc) {
 #if defined(GWLP_WNDPROC)
-	QT_WA({
-	    SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)wndproc);
-	},{
-	    SetWindowLongPtrA(hwnd, GWLP_WNDPROC, (LONG_PTR)wndproc);
-	})
+    QT_WA({
+        SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)wndproc);
+    },{
+        SetWindowLongPtrA(hwnd, GWLP_WNDPROC, (LONG_PTR)wndproc);
+    })
 #else
-	QT_WA({
-	    SetWindowLong(hwnd, GWL_WNDPROC, (LONG)wndproc);
-	},{
-	    SetWindowLongA(hwnd, GWL_WNDPROC, (LONG)wndproc);
-	})
+    QT_WA({
+        SetWindowLong(hwnd, GWL_WNDPROC, (LONG)wndproc);
+    },{
+        SetWindowLongA(hwnd, GWL_WNDPROC, (LONG)wndproc);
+    })
 #endif
     }
 
     if (hwnd && own_hwnd)
-	DestroyWindow(hwnd);
+    DestroyWindow(hwnd);
 }
 
 
 void QWinHost::setWindow(HWND hwnd)
 {
-	setHostedWindow(hwnd);
+    setHostedWindow(hwnd);
 }
 
 
 HWND QWinHost::window() const
 {
-	return hostedWindow();
+    return hostedWindow();
 }
 
 /*!
@@ -176,8 +176,8 @@ void QWinHost::fixParent()
 }
 
 /*!
-    Sets the native Win32 window to \a window. If \a window is not a child 
-    window of this widget, then it is reparented to become one. If \a window 
+    Sets the native Win32 window to \a window. If \a window is not a child
+    window of this widget, then it is reparented to become one. If \a window
     is not a child window (i.e. WS_OVERLAPPED is set), then this function does nothing.
 
     The lifetime of the window handle will be managed by Windows, QWinHost does not
@@ -189,20 +189,20 @@ void QWinHost::fixParent()
 void QWinHost::setHostedWindow( HWND window )
 {
     HWND old_hwnd = hwnd;
-    bool changed = window != hwnd; 
-    
+    bool changed = window != hwnd;
+
     if (hwnd && own_hwnd)
-	DestroyWindow(hwnd);
+    DestroyWindow(hwnd);
 
     hwnd = window;
     //-------------------------------------------------------------------------
     // Autodesk 3ds Max Addition
     //-------------------------------------------------------------------------
     // Used to check if the child accessible Qt found is hosting a native HWND.
-    // If so, we skip Qt's wrapped object and jump straight to the native 
-    // accessible retrieved from that hosted HWND. As a result of this, the 
-    // QWinHost itself won't appear in the accessible hierarchy at all - it 
-    // gets transparently replaced by the hosted HWND. In order to work as 
+    // If so, we skip Qt's wrapped object and jump straight to the native
+    // accessible retrieved from that hosted HWND. As a result of this, the
+    // QWinHost itself won't appear in the accessible hierarchy at all - it
+    // gets transparently replaced by the hosted HWND. In order to work as
     // expected, the hosted HWND must therefore infill the QWinHost completely.
     //-------------------------------------------------------------------------
     setProperty( "_3dsmax_hosted_hwnd", QVariant::fromValue<void*>( hwnd ) );
@@ -211,7 +211,7 @@ void QWinHost::setHostedWindow( HWND window )
 
     own_hwnd = false;
 
-    if ( changed ) 
+    if ( changed )
     {
         emit hostedWindowChanged( window, old_hwnd );
     }
@@ -238,45 +238,45 @@ LRESULT CALLBACK WinHostProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     QWinHost *widget = qobject_cast<QWinHost*>(QWidget::find((WId)::GetParent(hwnd)));
     WNDPROC oldproc = (WNDPROC)getWindowProc(widget);
     if (widget) {
-	switch(msg) {
-	case WM_LBUTTONDOWN:
-	    if (::GetFocus() != hwnd && (widget->focusPolicy() & Qt::ClickFocus)) {
-		widget->setFocus(Qt::MouseFocusReason);
-	    }
-	    break;
+    switch(msg) {
+    case WM_LBUTTONDOWN:
+        if (::GetFocus() != hwnd && (widget->focusPolicy() & Qt::ClickFocus)) {
+        widget->setFocus(Qt::MouseFocusReason);
+        }
+        break;
 
-	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP:
-	    QT_WA({
+    case WM_SYSKEYDOWN:
+    case WM_SYSKEYUP:
+        QT_WA({
             SendMessage((HWND)widget->winId(), msg, wParam, lParam);
-	    }, {
+        }, {
             SendMessageA((HWND)widget->winId(), msg, wParam, lParam);
-	    })
-	    break;
+        })
+        break;
 
-	case WM_KEYDOWN:
-	    if (wParam == VK_TAB) {
-		QT_WA({
+    case WM_KEYDOWN:
+        if (wParam == VK_TAB) {
+        QT_WA({
             SendMessage((HWND)widget->winId(), msg, wParam, lParam);
-		}, {
+        }, {
             SendMessageA((HWND)widget->winId(), msg, wParam, lParam);
-		})
-	    }
-	    break;
+        })
+        }
+        break;
 
-	default:
-	    break;
-	}
+    default:
+        break;
+    }
     }
 
     QT_WA({
-	if (oldproc)
-	    return CallWindowProc(oldproc, hwnd, msg, wParam, lParam);
-	return DefWindowProc(hwnd,msg,wParam,lParam);
+    if (oldproc)
+        return CallWindowProc(oldproc, hwnd, msg, wParam, lParam);
+    return DefWindowProc(hwnd,msg,wParam,lParam);
     }, {
-	if (oldproc)
-	    return CallWindowProcA(oldproc, hwnd, msg, wParam, lParam);
-	return DefWindowProcA(hwnd,msg,wParam,lParam);
+    if (oldproc)
+        return CallWindowProcA(oldproc, hwnd, msg, wParam, lParam);
+    return DefWindowProcA(hwnd,msg,wParam,lParam);
     })
 }
 
@@ -340,7 +340,7 @@ void QWinHost::showEvent(QShowEvent *e)
     QWidget::showEvent(e);
 
     if (hwnd)
-	SetWindowPos(hwnd, HWND_TOP, 0, 0, width(), height(), SWP_SHOWWINDOW);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, width(), height(), SWP_SHOWWINDOW);
 }
 
 /*!
@@ -351,7 +351,7 @@ void QWinHost::focusInEvent(QFocusEvent *e)
     QWidget::focusInEvent(e);
 
     if (hwnd)
-	::SetFocus(hwnd);
+    ::SetFocus(hwnd);
 }
 
 /*!
@@ -361,7 +361,7 @@ void QWinHost::resizeEvent(QResizeEvent *e)
 {
     QWidget::resizeEvent(e);
     if (hwnd)
-	SetWindowPos(hwnd, HWND_TOP, 0, 0, width(), height(), 0);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, width(), height(), 0);
 }
 
 extern void PrintWinMsg(const char* wndName, UINT msg);
@@ -383,14 +383,14 @@ bool QWinHost::winEvent(MSG *msg, long *result)
     switch (msg->message)
     {
     case WM_SETFOCUS:
-		PrintWinMsg("QWinHost \t\t\t\t", msg->message);
+        PrintWinMsg("QWinHost \t\t\t\t", msg->message);
         if (hwnd) {
             ::SetFocus(hwnd);
             return true;
         }
         break;
     default:
-		PrintWinMsg("QWinHost \t\t\t\t", msg->message);
+        PrintWinMsg("QWinHost \t\t\t\t", msg->message);
         break;
     }
 #if QT_VERSION >= 0x050000

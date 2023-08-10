@@ -50,7 +50,7 @@
 class QWinHost : public QWidget
 {
     Q_OBJECT
-   
+
 public:
     QWinHost(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags() );
     virtual ~QWinHost();
@@ -62,7 +62,7 @@ public:
     HWND hostedWindow() const;
 
 Q_SIGNALS:
-    
+
     /* \brief Gets emitted, if the native window that is hosted by this
     * widget has been changed.
     * \param newHWND the new HWND inside this object
@@ -81,7 +81,7 @@ protected:
 #if QT_VERSION >= 0x060000
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
 #elif QT_VERSION >= 0x050000
-	bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
+    bool nativeEvent(const QByteArray& eventType, void* message, long* result) override;
 #else
     bool winEvent(MSG *msg, long *result);
 #endif
